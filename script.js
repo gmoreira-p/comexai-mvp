@@ -7,5 +7,19 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         freight: document.getElementById('freight').value || 0,
         insurance: document.getElementById('insurance').value || 0
     };
-    document.getElementById('result').innerHTML = `<pre>${JSON.stringify(formData, null, 2)}</pre>`;
+
+    fetch('https://comexai-backend.onrender.com/calculate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('result').innerHTML = `<p>${data.message}</p>`;
+    })
+    .catch(error => {
+        document.getElementById('result').innerHTML = `<p>Error: ${error}</p>`;
+    });
 });
