@@ -53,3 +53,44 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
     });
 });
+document.getElementById('downloadPdf').addEventListener('click', function() {
+    const formData = {
+        category: document.getElementById('category').value,
+        quantity: parseFloat(document.getElementById('quantity').value),
+        productCost: parseFloat(document.getElementById('productCost').value),
+        freight: parseFloat(document.getElementById('freight').value) || 0,
+        insurance: parseFloat(document.getElementById('insurance').value) || 0
+    };
+
+    if (!formData.category || isNaN(formData.quantity) || isNaN(formData.productCost)) {
+        document.getElementById('result').innerHTML = '<p>Please complete the form before downloading.</p>';
+        return;
+    }
+
+    fetch('https://comexai-backend.onrender.com/generate_pdf', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to generate PDF');
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'import_cost_report.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => {
+        document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+    });
+});
