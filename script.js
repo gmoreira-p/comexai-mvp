@@ -2,31 +2,35 @@ document.getElementById('importForm').addEventListener('submit', function(event)
     event.preventDefault();
 
     const formData = {
-        ncm: document.getElementById('ncm').value,
+        ncm: document.getElementById('ncm').value.trim(),
         quantity: parseFloat(document.getElementById('quantity').value),
         productCost: parseFloat(document.getElementById('productCost').value),
         freight: parseFloat(document.getElementById('freight').value) || 0,
         insurance: parseFloat(document.getElementById('insurance').value) || 0
     };
 
+    const resultDiv = document.getElementById('result');
+    const resultBody = document.querySelector('#result .card-body');
+    const spinner = document.querySelector('.loading-spinner');
+
     if (!formData.ncm) {
-        document.getElementById('result').style.display = 'block';
-        document.querySelector('#result .card-body').innerHTML = '<p class="text-danger">Please enter an NCM code.</p>';
+        resultDiv.style.display = 'block';
+        resultBody.innerHTML = '<p class="text-danger">Please enter an NCM code.</p>';
         return;
     }
     if (isNaN(formData.quantity) || formData.quantity <= 0) {
-        document.getElementById('result').style.display = 'block';
-        document.querySelector('#result .card-body').innerHTML = '<p class="text-danger">Quantity must be a positive number.</p>';
+        resultDiv.style.display = 'block';
+        resultBody.innerHTML = '<p class="text-danger">Quantity must be a positive number.</p>';
         return;
     }
     if (isNaN(formData.productCost) || formData.productCost <= 0) {
-        document.getElementById('result').style.display = 'block';
-        document.querySelector('#result .card-body').innerHTML = '<p class="text-danger">Product cost must be a positive number.</p>';
+        resultDiv.style.display = 'block';
+        resultBody.innerHTML = '<p class="text-danger">Product cost must be a positive number.</p>';
         return;
     }
 
-    document.getElementById('result').style.display = 'block';
-    document.querySelector('#result .card-body').innerHTML = '<p>Loading...</p>';
+    resultDiv.style.display = 'none';
+    spinner.style.display = 'block';
 
     fetch('https://comexai-backend.onrender.com/calculate', {
         method: 'POST',
@@ -42,8 +46,10 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         return response.json();
     })
     .then(data => {
+        spinner.style.display = 'none';
+        resultDiv.style.display = 'block';
         if (data.error) {
-            document.querySelector('#result .card-body').innerHTML = `<p class="text-danger">Error: ${data.error}</p>`;
+            resultBody.innerHTML = `<p class="text-danger">Error: ${data.error}</p>`;
         } else {
             let resultHTML = '<h3 class="card-title">Import Cost Breakdown</h3>';
             resultHTML += `<p><strong>NCM Code:</strong> ${formData.ncm}</p>`;
@@ -55,29 +61,37 @@ document.getElementById('importForm').addEventListener('submit', function(event)
             resultHTML += `<p><strong>ICMS:</strong> R$ ${data.ICMS.toFixed(2)}</p>`;
             resultHTML += `<p><strong>PIS:</strong> R$ ${data.PIS.toFixed(2)}</p>`;
             resultHTML += `<p><strong>COFINS:</strong> R$ ${data.COFINS.toFixed(2)}</p>`;
-            resultHTML += `<p><strong>Total Import Cost:</strong> R$ ${data.total_import_cost.toFixed(2)}</p>`;
-            document.querySelector('#result .card-body').innerHTML = resultHTML;
+            resultHTML += `<p class="mt-2 fw-bold"><strong>Total Import Cost:</strong> R$ ${data.total_import_cost.toFixed(2)}</p>`;
+            resultBody.innerHTML = resultHTML;
         }
     })
     .catch(error => {
-        document.querySelector('#result .card-body').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+        spinner.style.display = 'none';
+        resultDiv.style.display = 'block';
+        resultBody.innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
     });
 });
 
 document.getElementById('downloadPdf').addEventListener('click', function() {
     const formData = {
-        ncm: document.getElementById('ncm').value,
+        ncm: document.getElementById('ncm').value.trim(),
         quantity: parseFloat(document.getElementById('quantity').value),
         productCost: parseFloat(document.getElementById('productCost').value),
         freight: parseFloat(document.getElementById('freight').value) || 0,
         insurance: parseFloat(document.getElementById('insurance').value) || 0
     };
 
+    const resultDiv = document.getElementById('result');
+    const resultBody = document.querySelector('#result .card-body');
+    const spinner = document.querySelector('.loading-spinner');
+
     if (!formData.ncm || isNaN(formData.quantity) || isNaN(formData.productCost)) {
-        document.getElementById('result').style.display = 'block';
-        document.querySelector('#result .card-body').innerHTML = '<p class="text-danger">Please complete the form before downloading.</p>';
+        resultDiv.style.display = 'block';
+        resultBody.innerHTML = '<p class="text-danger">Please complete the form before downloading.</p>';
         return;
     }
+
+    spinner.style.display = 'block';
 
     fetch('https://comexai-backend.onrender.com/generate_pdf', {
         method: 'POST',
@@ -93,6 +107,7 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         return response.blob();
     })
     .then(blob => {
+        spinner.style.display = 'none';
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -103,7 +118,8 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         window.URL.revokeObjectURL(url);
     })
     .catch(error => {
-        document.getElementById('result').style.display = 'block';
-        document.querySelector('#result .card-body').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+        spinner.style.display = 'none';
+        resultDiv.style.display = 'block';
+        resultBody.innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
     });
 });
