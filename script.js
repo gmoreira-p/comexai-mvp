@@ -1,4 +1,3 @@
-// Calculation Form Submission
 document.getElementById('importForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
@@ -37,6 +36,7 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         return;
     }
 
+    console.log("Sending calculate request:", formData);  // Debug log
     resultDiv.style.display = 'none';
     spinner.style.display = 'block';
 
@@ -56,15 +56,36 @@ document.getElementById('importForm').addEventListener('submit', function(event)
     .then(data => {
         spinner.style.display = 'none';
         resultDiv.style.display = 'block';
-        if (data.error) {
-            resultBody.innerHTML = `<p class="text-danger">Error: ${data.error}</p>`;
-        } else {
-            // Display results (keep your existing result display code here)
-            resultBody.innerHTML = `
-                <h3 class="card-title">Import Cost Breakdown for ${formData.state}</h3>
-                <!-- Add your result HTML here -->
-            `;
-        }
+        resultBody.innerHTML = `
+            <h3 class="card-title">Import Cost Breakdown for ${formData.state}</h3>
+            <div class="card mb-3">
+                <div class="card-header">Valor Aduaneiro</div>
+                <div class="card-body">
+                    <p>Product Cost: R$ ${data.total_product_cost.toFixed(2)}</p>
+                    <p>Freight: R$ ${data.freight.toFixed(2)}</p>
+                    <p>Insurance: R$ ${data.insurance.toFixed(2)}</p>
+                    <p><strong>Total Valor Aduaneiro: R$ ${data.valor_aduaneiro.toFixed(2)}</strong></p>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header">Tributos Devidos no Desembaraço</div>
+                <div class="card-body">
+                    <p>II: R$ ${data.II.toFixed(2)}</p>
+                    <p>IPI: R$ ${data.IPI.toFixed(2)}</p>
+                    <p>PIS: R$ ${data.PIS.toFixed(2)}</p>
+                    <p>COFINS: R$ ${data.COFINS.toFixed(2)}</p>
+                    <p>ICMS: R$ ${data.ICMS.toFixed(2)}</p>
+                    <p><strong>Total de Tributos: R$ ${data.total_tributos.toFixed(2)}</strong></p>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header">Custo Líquido da Importação</div>
+                <div class="card-body">
+                    <p><strong>Total: R$ ${data.custo_liquido.toFixed(2)}</strong></p>
+                    <p><strong>Cost Per Unit: R$ ${data.cost_per_unit.toFixed(2)}</strong></p>
+                </div>
+            </div>
+        `;
     })
     .catch(error => {
         spinner.style.display = 'none';
@@ -73,7 +94,6 @@ document.getElementById('importForm').addEventListener('submit', function(event)
     });
 });
 
-// PDF Download Button
 document.getElementById('downloadPdf').addEventListener('click', function() {
     const formData = {
         ncm: document.getElementById('ncm').value.trim(),
@@ -103,20 +123,19 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         body: JSON.stringify(formData)
     })
     .then(response => {
-        console.log("Response status:", response.status);  // Debug log
+        console.log("PDF Response status:", response.status, "Headers:", response.headers.get('Content-Type'));  // Debug log
         if (!response.ok) {
             if (response.headers.get('Content-Type').includes('application/json')) {
                 return response.json().then(data => {
-                    throw new Error(data.error || 'Unknown error');
+                    throw new Error(data.error || 'Unknown server error');
                 });
-            } else {
-                throw new Error('Failed to generate PDF - Server error');
             }
+            throw new Error('Failed to generate PDF - Server error');
         }
         return response.blob();
     })
     .then(blob => {
-        console.log("Blob received:", blob);  // Debug log
+        console.log("PDF Blob received:", blob.size, "bytes");  // Debug log
         spinner.style.display = 'none';
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -131,6 +150,6 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         console.error("PDF fetch error:", error);  // Debug log
         spinner.style.display = 'none';
         resultDiv.style.display = 'block';
-        resultBody.innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+        resultBody.innerHTML = `<p class="text-danger">Error generating PDF: ${error.message}</p>`;
     });
 });
