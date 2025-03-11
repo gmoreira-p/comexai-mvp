@@ -1,3 +1,4 @@
+// Calculation Form Submission
 document.getElementById('importForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
@@ -14,6 +15,7 @@ document.getElementById('importForm').addEventListener('submit', function(event)
     const resultBody = document.querySelector('#result .card-body');
     const spinner = document.querySelector('.loading-spinner');
 
+    // Basic validation
     if (!formData.ncm) {
         resultDiv.style.display = 'block';
         resultBody.innerHTML = '<p class="text-danger">Please enter an NCM code.</p>';
@@ -44,7 +46,11 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         body: JSON.stringify(formData)
     })
     .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || 'Unknown error');
+            });
+        }
         return response.json();
     })
     .then(data => {
@@ -53,35 +59,10 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         if (data.error) {
             resultBody.innerHTML = `<p class="text-danger">Error: ${data.error}</p>`;
         } else {
+            // Display results (keep your existing result display code here)
             resultBody.innerHTML = `
                 <h3 class="card-title">Import Cost Breakdown for ${formData.state}</h3>
-                <div class="card mb-3">
-                    <div class="card-header">Valor Aduaneiro</div>
-                    <div class="card-body">
-                        <p>Product Cost: R$ ${data.total_product_cost.toFixed(2)}</p>
-                        <p>Freight: R$ ${data.freight.toFixed(2)}</p>
-                        <p>Insurance: R$ ${data.insurance.toFixed(2)}</p>
-                        <p><strong>Total Valor Aduaneiro: R$ ${data.valor_aduaneiro.toFixed(2)}</strong></p>
-                    </div>
-                </div>
-                <div class="card mb-3">
-                    <div class="card-header">Tributos Devidos no Desembaraço</div>
-                    <div class="card-body">
-                        <p>II: R$ ${data.II.toFixed(2)}</p>
-                        <p>IPI: R$ ${data.IPI.toFixed(2)}</p>
-                        <p>PIS: R$ ${data.PIS.toFixed(2)}</p>
-                        <p>COFINS: R$ ${data.COFINS.toFixed(2)}</p>
-                        <p>ICMS: R$ ${data.ICMS.toFixed(2)}</p>
-                        <p><strong>Total de Tributos: R$ ${data.total_tributos.toFixed(2)}</strong></p>
-                    </div>
-                </div>
-                <div class="card mb-3">
-                    <div class="card-header">Custo Líquido da Importação</div>
-                    <div class="card-body">
-                        <p><strong>Total: R$ ${data.custo_liquido.toFixed(2)}</strong></p>
-                        <p><strong>Cost Per Unit: R$ ${data.cost_per_unit.toFixed(2)}</strong></p>
-                    </div>
-                </div>
+                <!-- Add your result HTML here -->
             `;
         }
     })
@@ -92,4 +73,60 @@ document.getElementById('importForm').addEventListener('submit', function(event)
     });
 });
 
-// Add similar logic for the downloadPdf button if needed
+// PDF Download Button
+document.getElementById('downloadPdf').addEventListener('click', function() {
+    const formData = {
+        ncm: document.getElementById('ncm').value.trim(),
+        quantity: parseFloat(document.getElementById('quantity').value),
+        productCost: parseFloat(document.getElementById('productCost').value),
+        freight: parseFloat(document.getElementById('freight').value) || 0,
+        insurance: parseFloat(document.getElementById('insurance').value) || 0,
+        state: document.getElementById('state').value
+    };
+
+    const resultDiv = document.getElementById('result');
+    const resultBody = document.querySelector('#result .card-body');
+    const spinner = document.querySelector('.loading-spinner');
+
+    if (!formData.ncm || isNaN(formData.quantity) || isNaN(formData.productCost) || !formData.state) {
+        resultDiv.style.display = 'block';
+        resultBody.innerHTML = '<p class="text-danger">Please complete the form before downloading.</p>';
+        return;
+    }
+
+    spinner.style.display = 'block';
+
+    fetch('https://comexai-backend.onrender.com/generate_pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            if (response.headers.get('Content-Type').includes('application/json')) {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Unknown error');
+                });
+            } else {
+                throw new Error('Failed to generate PDF');
+            }
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        spinner.style.display = 'none';
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'import_cost_report.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => {
+        spinner.style.display = 'none';
+        resultDiv.style.display = 'block';
+        resultBody.innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+    });
+});
