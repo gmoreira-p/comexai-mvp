@@ -1,7 +1,6 @@
 document.getElementById('importForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
-    // Collect and convert form data
     const formData = {
         category: document.getElementById('category').value,
         quantity: parseFloat(document.getElementById('quantity').value),
@@ -10,24 +9,25 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         insurance: parseFloat(document.getElementById('insurance').value) || 0
     };
 
-    // Validate inputs
     if (!formData.category) {
-        document.getElementById('result').innerHTML = '<p>Please select a category.</p>';
+        document.getElementById('result').style.display = 'block';
+        document.querySelector('#result .card-body').innerHTML = '<p class="text-danger">Please select a category.</p>';
         return;
     }
     if (isNaN(formData.quantity) || formData.quantity <= 0) {
-        document.getElementById('result').innerHTML = '<p>Quantity must be a positive number.</p>';
+        document.getElementById('result').style.display = 'block';
+        document.querySelector('#result .card-body').innerHTML = '<p class="text-danger">Quantity must be a positive number.</p>';
         return;
     }
     if (isNaN(formData.productCost) || formData.productCost <= 0) {
-        document.getElementById('result').innerHTML = '<p>Product cost must be a positive number.</p>';
+        document.getElementById('result').style.display = 'block';
+        document.querySelector('#result .card-body').innerHTML = '<p class="text-danger">Product cost must be a positive number.</p>';
         return;
     }
 
-    // Show loading message
-    document.getElementById('result').innerHTML = '<p>Loading...</p>';
+    document.getElementById('result').style.display = 'block';
+    document.querySelector('#result .card-body').innerHTML = '<p>Loading...</p>';
 
-    // Send request
     fetch('https://comexai-backend.onrender.com/calculate', {
         method: 'POST',
         headers: {
@@ -43,16 +43,26 @@ document.getElementById('importForm').addEventListener('submit', function(event)
     })
     .then(data => {
         if (data.error) {
-            document.getElementById('result').innerHTML = `<p>Error: ${data.error}</p>`;
+            document.querySelector('#result .card-body').innerHTML = `<p class="text-danger">Error: ${data.error}</p>`;
         } else {
-            document.getElementById('result').innerHTML = `<p>${data.message || 'Calculation successful!'}</p>`;
-            // Add more detailed output if backend provides it, e.g., data.totalCost
+            let resultHTML = '<h3 class="card-title">Import Cost Breakdown</h3>';
+            resultHTML += `<p><strong>Total Product Cost:</strong> R$ ${data.total_product_cost.toFixed(2)}</p>`;
+            resultHTML += `<p><strong>Freight:</strong> R$ ${data.freight.toFixed(2)}</p>`;
+            resultHTML += `<p><strong>Insurance:</strong> R$ ${data.insurance.toFixed(2)}</p>`;
+            resultHTML += `<p><strong>Import Tax (II):</strong> R$ ${data.II.toFixed(2)}</p>`;
+            resultHTML += `<p><strong>IPI:</strong> R$ ${data.IPI.toFixed(2)}</p>`;
+            resultHTML += `<p><strong>ICMS:</strong> R$ ${data.ICMS.toFixed(2)}</p>`;
+            resultHTML += `<p><strong>PIS:</strong> R$ ${data.PIS.toFixed(2)}</p>`;
+            resultHTML += `<p><strong>COFINS:</strong> R$ ${data.COFINS.toFixed(2)}</p>`;
+            resultHTML += `<p><strong>Total Import Cost:</strong> R$ ${data.total_import_cost.toFixed(2)}</p>`;
+            document.querySelector('#result .card-body').innerHTML = resultHTML;
         }
     })
     .catch(error => {
-        document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+        document.querySelector('#result .card-body').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
     });
 });
+
 document.getElementById('downloadPdf').addEventListener('click', function() {
     const formData = {
         category: document.getElementById('category').value,
@@ -63,7 +73,8 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
     };
 
     if (!formData.category || isNaN(formData.quantity) || isNaN(formData.productCost)) {
-        document.getElementById('result').innerHTML = '<p>Please complete the form before downloading.</p>';
+        document.getElementById('result').style.display = 'block';
+        document.querySelector('#result .card-body').innerHTML = '<p class="text-danger">Please complete the form before downloading.</p>';
         return;
     }
 
@@ -91,6 +102,7 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         window.URL.revokeObjectURL(url);
     })
     .catch(error => {
-        document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+        document.getElementById('result').style.display = 'block';
+        document.querySelector('#result .card-body').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
     });
 });

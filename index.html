@@ -36,10 +36,14 @@
                 <label for="insurance" class="form-label">Insurance Cost (BRL, optional)</label>
                 <input type="number" class="form-control" id="insurance">
             </div>
-            <button type="submit" class="btn btn-primary">Calculate</button>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Calculate</button>
+                <button type="button" id="downloadPdf" class="btn btn-success">Download PDF</button>
+            </div>
         </form>
-        <div id="result" class="mt-4"></div>
-        <button id="downloadPdf" class="btn btn-success mt-3">Download PDF</button>
+        <div id="result" class="mt-4 card" style="display: none;">
+            <div class="card-body"></div>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
