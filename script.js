@@ -94,6 +94,7 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         return;
     }
 
+    console.log("Sending PDF request:", formData);  // Debug log
     spinner.style.display = 'block';
 
     fetch('https://comexai-backend.onrender.com/generate_pdf', {
@@ -102,18 +103,20 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         body: JSON.stringify(formData)
     })
     .then(response => {
+        console.log("Response status:", response.status);  // Debug log
         if (!response.ok) {
             if (response.headers.get('Content-Type').includes('application/json')) {
                 return response.json().then(data => {
                     throw new Error(data.error || 'Unknown error');
                 });
             } else {
-                throw new Error('Failed to generate PDF');
+                throw new Error('Failed to generate PDF - Server error');
             }
         }
         return response.blob();
     })
     .then(blob => {
+        console.log("Blob received:", blob);  // Debug log
         spinner.style.display = 'none';
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -125,6 +128,7 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         window.URL.revokeObjectURL(url);
     })
     .catch(error => {
+        console.error("PDF fetch error:", error);  // Debug log
         spinner.style.display = 'none';
         resultDiv.style.display = 'block';
         resultBody.innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
