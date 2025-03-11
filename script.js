@@ -61,6 +61,7 @@ document.getElementById('importForm').addEventListener('submit', function(event)
             resultHTML += `<p><strong>ICMS:</strong> R$ ${data.ICMS.toFixed(2)}</p>`;
             resultHTML += `<p><strong>PIS:</strong> R$ ${data.PIS.toFixed(2)}</p>`;
             resultHTML += `<p><strong>COFINS:</strong> R$ ${data.COFINS.toFixed(2)}</p>`;
+            resultHTML += `<p><strong>Cost Per Unit:</strong> R$ ${data.cost_per_unit.toFixed(2)}</p>`;
             resultHTML += `<p class="mt-2 fw-bold"><strong>Total Import Cost:</strong> R$ ${data.total_import_cost.toFixed(2)}</p>`;
             resultBody.innerHTML = resultHTML;
         }
