@@ -14,6 +14,7 @@
         .btn-primary:hover { background-color: #0056b3; }
         .btn-success:hover { background-color: #218838; }
         .loading-spinner { display: none; margin-top: 10px; }
+        #customIcmsRate { display: none; } /* Hidden by default */
     </style>
 </head>
 <body>
@@ -51,9 +52,16 @@
                         <option value="">Select a state</option>
                         <option value="São Paulo">São Paulo</option>
                         <option value="Rio de Janeiro">Rio de Janeiro</option>
-                        <option value="Santa Catarina">Santa Catarina</option>
                         <option value="Paraná">Paraná</option>
+                        <option value="Santa Catarina">Santa Catarina</option>
+* Add Espírito Santo with its ICMS rate
+                        <option value="Espírito Santo">Espírito Santo</option>
+                        <option value="Custom">Custom</option>
                     </select>
+                </div>
+                <div class="mb-3" id="customIcmsRate">
+                    <label for="icmsRate" class="form-label">Custom ICMS Rate (%)</label>
+                    <input type="number" class="form-control" id="icmsRate" min="0" max="100" step="0.01" placeholder="e.g., 12.5">
                 </div>
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">Calculate</button>

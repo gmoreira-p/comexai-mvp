@@ -1,3 +1,12 @@
+document.getElementById('state').addEventListener('change', function() {
+    const customIcmsDiv = document.getElementById('customIcmsRate');
+    if (this.value === 'Custom') {
+        customIcmsDiv.style.display = 'block';
+    } else {
+        customIcmsDiv.style.display = 'none';
+    }
+});
+
 document.getElementById('importForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
@@ -10,11 +19,22 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         state: document.getElementById('state').value
     };
 
+    if (formData.state === 'Custom') {
+        const icmsRate = parseFloat(document.getElementById('icmsRate').value);
+        if (isNaN(icmsRate) || icmsRate < 0 || icmsRate > 100) {
+            const resultDiv = document.getElementById('result');
+            const resultBody = document.querySelector('#result .card-body');
+            resultDiv.style.display = 'block';
+            resultBody.innerHTML = '<p class="text-danger">Custom ICMS rate must be between 0 and 100.</p>';
+            return;
+        }
+        formData.icmsRate = icmsRate / 100; // Convert percentage to decimal
+    }
+
     const resultDiv = document.getElementById('result');
     const resultBody = document.querySelector('#result .card-body');
     const spinner = document.querySelector('.loading-spinner');
 
-    // Basic validation
     if (!formData.ncm) {
         resultDiv.style.display = 'block';
         resultBody.innerHTML = '<p class="text-danger">Please enter an NCM code.</p>';
@@ -36,7 +56,7 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         return;
     }
 
-    console.log("Sending calculate request with state:", formData.state);  // Updated debug log
+    console.log("Sending calculate request with state:", formData.state, "ICMS Rate:", formData.icmsRate || 'Predefined');
     resultDiv.style.display = 'none';
     spinner.style.display = 'block';
 
@@ -59,7 +79,7 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         spinner.style.display = 'none';
         resultDiv.style.display = 'block';
         resultBody.innerHTML = `
-            <h3 class="card-title">Import Cost Breakdown for ${formData.state}</h3>
+            <h3 class="card-title">Import Cost Breakdown for ${formData.state}${formData.state === 'Custom' ? ' (Custom ICMS: ' + (formData.icmsRate * 100).toFixed(2) + '%)' : ''}</h3>
             <div class="card mb-3">
                 <div class="card-header">Valor Aduaneiro</div>
                 <div class="card-body">
@@ -107,6 +127,18 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         state: document.getElementById('state').value
     };
 
+    if (formData.state === 'Custom') {
+        const icmsRate = parseFloat(document.getElementById('icmsRate').value);
+        if (isNaN(icmsRate) || icmsRate < 0 || icmsRate > 100) {
+            const resultDiv = document.getElementById('result');
+            const resultBody = document.querySelector('#result .card-body');
+            resultDiv.style.display = 'block';
+            resultBody.innerHTML = '<p class="text-danger">Custom ICMS rate must be between 0 and 100.</p>';
+            return;
+        }
+        formData.icmsRate = icmsRate / 100;
+    }
+
     const resultDiv = document.getElementById('result');
     const resultBody = document.querySelector('#result .card-body');
     const spinner = document.querySelector('.loading-spinner');
@@ -117,7 +149,7 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         return;
     }
 
-    console.log("Sending PDF request with state:", formData.state);  // Updated debug log
+    console.log("Sending PDF request with state:", formData.state, "ICMS Rate:", formData.icmsRate || 'Predefined');
     spinner.style.display = 'block';
 
     fetch('https://comexai-backend.onrender.com/generate_pdf', {
