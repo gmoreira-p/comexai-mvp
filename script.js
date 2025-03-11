@@ -2,16 +2,16 @@ document.getElementById('importForm').addEventListener('submit', function(event)
     event.preventDefault();
 
     const formData = {
-        category: document.getElementById('category').value,
+        ncm: document.getElementById('ncm').value,
         quantity: parseFloat(document.getElementById('quantity').value),
         productCost: parseFloat(document.getElementById('productCost').value),
         freight: parseFloat(document.getElementById('freight').value) || 0,
         insurance: parseFloat(document.getElementById('insurance').value) || 0
     };
 
-    if (!formData.category) {
+    if (!formData.ncm) {
         document.getElementById('result').style.display = 'block';
-        document.querySelector('#result .card-body').innerHTML = '<p class="text-danger">Please select a category.</p>';
+        document.querySelector('#result .card-body').innerHTML = '<p class="text-danger">Please enter an NCM code.</p>';
         return;
     }
     if (isNaN(formData.quantity) || formData.quantity <= 0) {
@@ -46,6 +46,7 @@ document.getElementById('importForm').addEventListener('submit', function(event)
             document.querySelector('#result .card-body').innerHTML = `<p class="text-danger">Error: ${data.error}</p>`;
         } else {
             let resultHTML = '<h3 class="card-title">Import Cost Breakdown</h3>';
+            resultHTML += `<p><strong>NCM Code:</strong> ${formData.ncm}</p>`;
             resultHTML += `<p><strong>Total Product Cost:</strong> R$ ${data.total_product_cost.toFixed(2)}</p>`;
             resultHTML += `<p><strong>Freight:</strong> R$ ${data.freight.toFixed(2)}</p>`;
             resultHTML += `<p><strong>Insurance:</strong> R$ ${data.insurance.toFixed(2)}</p>`;
@@ -65,14 +66,14 @@ document.getElementById('importForm').addEventListener('submit', function(event)
 
 document.getElementById('downloadPdf').addEventListener('click', function() {
     const formData = {
-        category: document.getElementById('category').value,
+        ncm: document.getElementById('ncm').value,
         quantity: parseFloat(document.getElementById('quantity').value),
         productCost: parseFloat(document.getElementById('productCost').value),
         freight: parseFloat(document.getElementById('freight').value) || 0,
         insurance: parseFloat(document.getElementById('insurance').value) || 0
     };
 
-    if (!formData.category || isNaN(formData.quantity) || isNaN(formData.productCost)) {
+    if (!formData.ncm || isNaN(formData.quantity) || isNaN(formData.productCost)) {
         document.getElementById('result').style.display = 'block';
         document.querySelector('#result .card-body').innerHTML = '<p class="text-danger">Please complete the form before downloading.</p>';
         return;
