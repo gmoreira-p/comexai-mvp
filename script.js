@@ -36,7 +36,7 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         return;
     }
 
-    console.log("Sending calculate request:", formData);  // Debug log
+    console.log("Sending calculate request with state:", formData.state);  // Updated debug log
     resultDiv.style.display = 'none';
     spinner.style.display = 'block';
 
@@ -46,6 +46,7 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         body: JSON.stringify(formData)
     })
     .then(response => {
+        console.log("Calculate response status:", response.status);
         if (!response.ok) {
             return response.json().then(data => {
                 throw new Error(data.error || 'Unknown error');
@@ -54,6 +55,7 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         return response.json();
     })
     .then(data => {
+        console.log("Received data:", data);
         spinner.style.display = 'none';
         resultDiv.style.display = 'block';
         resultBody.innerHTML = `
@@ -88,6 +90,7 @@ document.getElementById('importForm').addEventListener('submit', function(event)
         `;
     })
     .catch(error => {
+        console.error("Calculate fetch error:", error);
         spinner.style.display = 'none';
         resultDiv.style.display = 'block';
         resultBody.innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
@@ -114,7 +117,7 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         return;
     }
 
-    console.log("Sending PDF request:", formData);  // Debug log
+    console.log("Sending PDF request with state:", formData.state);  // Updated debug log
     spinner.style.display = 'block';
 
     fetch('https://comexai-backend.onrender.com/generate_pdf', {
@@ -123,7 +126,7 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         body: JSON.stringify(formData)
     })
     .then(response => {
-        console.log("PDF Response status:", response.status, "Headers:", response.headers.get('Content-Type'));  // Debug log
+        console.log("PDF Response status:", response.status, "Headers:", response.headers.get('Content-Type'));
         if (!response.ok) {
             if (response.headers.get('Content-Type').includes('application/json')) {
                 return response.json().then(data => {
@@ -135,7 +138,7 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         return response.blob();
     })
     .then(blob => {
-        console.log("PDF Blob received:", blob.size, "bytes");  // Debug log
+        console.log("PDF Blob received:", blob.size, "bytes");
         spinner.style.display = 'none';
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -147,7 +150,7 @@ document.getElementById('downloadPdf').addEventListener('click', function() {
         window.URL.revokeObjectURL(url);
     })
     .catch(error => {
-        console.error("PDF fetch error:", error);  // Debug log
+        console.error("PDF fetch error:", error);
         spinner.style.display = 'none';
         resultDiv.style.display = 'block';
         resultBody.innerHTML = `<p class="text-danger">Error generating PDF: ${error.message}</p>`;
