@@ -14,7 +14,7 @@
         .btn-primary:hover { background-color: #0056b3; }
         .btn-success:hover { background-color: #218838; }
         .loading-spinner { display: none; margin-top: 10px; }
-        #customIcmsRate { display: none; } /* Hidden by default */
+        #customIcmsRate { display: none; }
     </style>
 </head>
 <body>
@@ -34,17 +34,23 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="productCost" class="form-label">Product Cost per Unit (BRL)</label>
+                        <label for="productCost" class="form-label">Product Cost per Unit (USD)</label>
                         <input type="number" class="form-control" id="productCost" required min="0" step="0.01">
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="exchangeRate" class="form-label">Exchange Rate (USD to BRL)</label>
+                        <input type="number" class="form-control" id="exchangeRate" required min="0" step="0.01" placeholder="e.g., 5.20">
+                    </div>
+                </div>
+                <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="freight" class="form-label">Freight Cost (BRL, optional)</label>
                         <input type="number" class="form-control" id="freight" min="0" step="0.01">
                     </div>
-                </div>
-                <div class="mb-3">
-                    <label for="insurance" class="form-label">Insurance Cost (BRL, optional)</label>
-                    <input type="number" class="form-control" id="insurance" min="0" step="0.01">
+                    <div class="col-md-6 mb-3">
+                        <label for="insurance" class="form-label">Insurance Cost (BRL, optional)</label>
+                        <input type="number" class="form-control" id="insurance" min="0" step="0.01">
+                    </div>
                 </div>
                 <div class="mb-3">
                     <label for="state" class="form-label">State of Importation</label>
