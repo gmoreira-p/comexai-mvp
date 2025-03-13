@@ -18,10 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
             quantity: parseFloat(document.getElementById('quantity').value),
             productCostUsd: parseFloat(document.getElementById('productCost').value),
             exchangeRate: parseFloat(document.getElementById('exchangeRate').value),
-            // CHANGE START: Freight now in USD, Insurance now a percentage
             freightUsd: parseFloat(document.getElementById('freightUsd').value) || 0,
-            insuranceRate: parseFloat(document.getElementById('insuranceRate').value) / 100 || 0, // Convert % to decimal
-            // CHANGE END
+            insuranceRate: parseFloat(document.getElementById('insuranceRate').value) / 100 || 0,
             state: document.getElementById('state').value
         };
 
@@ -34,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultBody.innerHTML = '<p class="text-danger">Custom ICMS rate must be between 0 and 100.</p>';
                 return;
             }
-            formData.icmsRate = icmsRate / 100; // Convert percentage to decimal
+            formData.icmsRate = icmsRate / 100;
         }
 
         const resultDiv = document.getElementById('result');
@@ -89,50 +87,46 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Received data:", data);
             spinner.style.display = 'none';
             resultDiv.style.display = 'block';
+            // CHANGE START: Format numbers with Brazilian locale (100.000,00)
             resultBody.innerHTML = `
-                <h3 class="card-title">Import Cost Breakdown for ${formData.state}${formData.state === 'Custom' ? ' (Custom ICMS: ' + (formData.icmsRate * 100).toFixed(2) + '%)' : ''}</h3>
+                <h3 class="card-title">Import Cost Breakdown for ${formData.state}${formData.state === 'Custom' ? ' (Custom ICMS: ' + (formData.icmsRate * 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%)' : ''}</h3>
                 <div class="card mb-3">
                     <div class="card-header">Valor Aduaneiro (BRL)</div>
                     <div class="card-body">
-                        <p>Product Cost: $${formData.productCostUsd.toFixed(2)} USD (R$ ${data.total_product_cost.toFixed(2)} BRL @ ${formData.exchangeRate.toFixed(2)})</p>
-                        <!-- CHANGE START: Freight now in USD, converted to BRL -->
-                        <p>Freight: $${formData.freightUsd.toFixed(2)} USD (R$ ${data.freightBr.toFixed(2)} BRL)</p>
-                        <!-- CHANGE END -->
-                        <!-- CHANGE START: Insurance now based on percentage -->
-                        <p>Insurance: R$ ${data.insuranceBr.toFixed(2)} BRL (${(formData.insuranceRate * 100).toFixed(2)}% of FOB)</p>
-                        <!-- CHANGE END -->
-                        <p><strong>Total Valor Aduaneiro: R$ ${data.valor_aduaneiro.toFixed(2)} BRL</strong></p>
+                        <p>Product Cost: $${formData.productCostUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD (R$ ${data.total_product_cost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} BRL @ ${formData.exchangeRate.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</p>
+                        <p>Freight: $${formData.freightUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD (R$ ${data.freightBr.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} BRL)</p>
+                        <p>Insurance: R$ ${data.insuranceBr.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} BRL (${(formData.insuranceRate * 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}% of FOB)</p>
+                        <p><strong>Total Valor Aduaneiro: R$ ${data.valor_aduaneiro.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} BRL</strong></p>
                     </div>
                 </div>
                 <div class="card mb-3">
                     <div class="card-header">Tributos Devidos no Desembaraço (BRL)</div>
                     <div class="card-body">
-                        <p>II: R$ ${data.II.toFixed(2)}</p>
-                        <p>IPI: R$ ${data.IPI.toFixed(2)}</p>
-                        <p>PIS: R$ ${data.PIS.toFixed(2)}</p>
-                        <p>COFINS: R$ ${data.COFINS.toFixed(2)}</p>
-                        <p>ICMS: R$ ${data.ICMS.toFixed(2)}</p>
-                        <p><strong>Total de Tributos: R$ ${data.total_tributos.toFixed(2)}</strong></p>
+                        <p>II: R$ ${data.II.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        <p>IPI: R$ ${data.IPI.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        <p>PIS: R$ ${data.PIS.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        <p>COFINS: R$ ${data.COFINS.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        <p>ICMS: R$ ${data.ICMS.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        <p><strong>Total de Tributos: R$ ${data.total_tributos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
                     </div>
                 </div>
-                <!-- CHANGE START: Added Despesa de Nacionalização card -->
                 <div class="card mb-3">
                     <div class="card-header">Despesa de Nacionalização (BRL)</div>
                     <div class="card-body">
-                        <p>AFRMM (25% of Freight): R$ ${data.afrmm.toFixed(2)}</p>
-                        <p>Other Nationalization Costs (10% of FOB): R$ ${data.otherNatCosts.toFixed(2)}</p>
-                        <p><strong>Total Despesa de Nacionalização: R$ ${data.total_despesa_nacionalizacao.toFixed(2)}</strong></p>
+                        <p>AFRMM (25% of Freight): R$ ${data.afrmm.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        <p>Other Nationalization Costs (10% of FOB): R$ ${data.otherNatCosts.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        <p><strong>Total Despesa de Nacionalização: R$ ${data.total_despesa_nacionalizacao.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
                     </div>
                 </div>
-                <!-- CHANGE END -->
                 <div class="card mb-3">
                     <div class="card-header">Custo Líquido da Importação (BRL)</div>
                     <div class="card-body">
-                        <p><strong>Total: R$ ${data.custo_liquido.toFixed(2)}</strong></p>
-                        <p><strong>Cost Per Unit: R$ ${data.cost_per_unit.toFixed(2)}</strong></p>
+                        <p><strong>Total: R$ ${data.custo_liquido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
+                        <p><strong>Cost Per Unit: R$ ${data.cost_per_unit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
                     </div>
                 </div>
             `;
+            // CHANGE END
         })
         .catch(error => {
             console.error("Calculate fetch error:", error);
@@ -148,10 +142,8 @@ document.addEventListener('DOMContentLoaded', function() {
             quantity: parseFloat(document.getElementById('quantity').value),
             productCostUsd: parseFloat(document.getElementById('productCost').value),
             exchangeRate: parseFloat(document.getElementById('exchangeRate').value),
-            // CHANGE START: Freight now in USD, Insurance now a percentage
             freightUsd: parseFloat(document.getElementById('freightUsd').value) || 0,
             insuranceRate: parseFloat(document.getElementById('insuranceRate').value) / 100 || 0,
-            // CHANGE END
             state: document.getElementById('state').value
         };
 
