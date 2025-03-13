@@ -1,4 +1,6 @@
+// Ensure DOM is fully loaded before attaching event listeners
 document.addEventListener('DOMContentLoaded', function() {
+    // Toggle custom ICMS rate field visibility
     document.getElementById('state').addEventListener('change', function() {
         const customIcmsDiv = document.getElementById('customIcmsRate');
         if (this.value === 'Custom') {
@@ -14,10 +16,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = {
             ncm: document.getElementById('ncm').value.trim(),
             quantity: parseFloat(document.getElementById('quantity').value),
-            productCostUsd: parseFloat(document.getElementById('productCost').value), // Now in USD
-            exchangeRate: parseFloat(document.getElementById('exchangeRate').value), // New field
-            freight: parseFloat(document.getElementById('freight').value) || 0,
-            insurance: parseFloat(document.getElementById('insurance').value) || 0,
+            productCostUsd: parseFloat(document.getElementById('productCost').value),
+            exchangeRate: parseFloat(document.getElementById('exchangeRate').value),
+            // CHANGE START: Freight now in USD, Insurance now a percentage
+            freightUsd: parseFloat(document.getElementById('freightUsd').value) || 0,
+            insuranceRate: parseFloat(document.getElementById('insuranceRate').value) / 100 || 0, // Convert % to decimal
+            // CHANGE END
             state: document.getElementById('state').value
         };
 
@@ -30,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultBody.innerHTML = '<p class="text-danger">Custom ICMS rate must be between 0 and 100.</p>';
                 return;
             }
-            formData.icmsRate = icmsRate / 100;
+            formData.icmsRate = icmsRate / 100; // Convert percentage to decimal
         }
 
         const resultDiv = document.getElementById('result');
@@ -73,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify(formData)
         })
         .then(response => {
+            console.log("Calculate response status:", response.status);
             if (!response.ok) {
                 return response.json().then(data => {
                     throw new Error(data.error || 'Unknown error');
@@ -81,6 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(data => {
+            console.log("Received data:", data);
             spinner.style.display = 'none';
             resultDiv.style.display = 'block';
             resultBody.innerHTML = `
@@ -89,8 +95,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="card-header">Valor Aduaneiro (BRL)</div>
                     <div class="card-body">
                         <p>Product Cost: $${formData.productCostUsd.toFixed(2)} USD (R$ ${data.total_product_cost.toFixed(2)} BRL @ ${formData.exchangeRate.toFixed(2)})</p>
-                        <p>Freight: R$ ${data.freight.toFixed(2)} BRL</p>
-                        <p>Insurance: R$ ${data.insurance.toFixed(2)} BRL</p>
+                        <!-- CHANGE START: Freight now in USD, converted to BRL -->
+                        <p>Freight: $${formData.freightUsd.toFixed(2)} USD (R$ ${data.freightBr.toFixed(2)} BRL)</p>
+                        <!-- CHANGE END -->
+                        <!-- CHANGE START: Insurance now based on percentage -->
+                        <p>Insurance: R$ ${data.insuranceBr.toFixed(2)} BRL (${(formData.insuranceRate * 100).toFixed(2)}% of FOB)</p>
+                        <!-- CHANGE END -->
                         <p><strong>Total Valor Aduaneiro: R$ ${data.valor_aduaneiro.toFixed(2)} BRL</strong></p>
                     </div>
                 </div>
@@ -105,6 +115,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         <p><strong>Total de Tributos: R$ ${data.total_tributos.toFixed(2)}</strong></p>
                     </div>
                 </div>
+                <!-- CHANGE START: Added Despesa de Nacionalização card -->
+                <div class="card mb-3">
+                    <div class="card-header">Despesa de Nacionalização (BRL)</div>
+                    <div class="card-body">
+                        <p>AFRMM (25% of Freight): R$ ${data.afrmm.toFixed(2)}</p>
+                        <p>Other Nationalization Costs (10% of FOB): R$ ${data.otherNatCosts.toFixed(2)}</p>
+                        <p><strong>Total Despesa de Nacionalização: R$ ${data.total_despesa_nacionalizacao.toFixed(2)}</strong></p>
+                    </div>
+                </div>
+                <!-- CHANGE END -->
                 <div class="card mb-3">
                     <div class="card-header">Custo Líquido da Importação (BRL)</div>
                     <div class="card-body">
@@ -128,8 +148,10 @@ document.addEventListener('DOMContentLoaded', function() {
             quantity: parseFloat(document.getElementById('quantity').value),
             productCostUsd: parseFloat(document.getElementById('productCost').value),
             exchangeRate: parseFloat(document.getElementById('exchangeRate').value),
-            freight: parseFloat(document.getElementById('freight').value) || 0,
-            insurance: parseFloat(document.getElementById('insurance').value) || 0,
+            // CHANGE START: Freight now in USD, Insurance now a percentage
+            freightUsd: parseFloat(document.getElementById('freightUsd').value) || 0,
+            insuranceRate: parseFloat(document.getElementById('insuranceRate').value) / 100 || 0,
+            // CHANGE END
             state: document.getElementById('state').value
         };
 
@@ -164,6 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify(formData)
         })
         .then(response => {
+            console.log("PDF Response status:", response.status, "Headers:", response.headers.get('Content-Type'));
             if (!response.ok) {
                 if (response.headers.get('Content-Type').includes('application/json')) {
                     return response.json().then(data => {
@@ -175,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.blob();
         })
         .then(blob => {
+            console.log("PDF Blob received:", blob.size, "bytes");
             spinner.style.display = 'none';
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');

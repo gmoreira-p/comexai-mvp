@@ -14,7 +14,7 @@
         .btn-primary:hover { background-color: #0056b3; }
         .btn-success:hover { background-color: #218838; }
         .loading-spinner { display: none; margin-top: 10px; }
-        #customIcmsRate { display: none; }
+        #customIcmsRate { display: none; } /* Hidden by default */
     </style>
 </head>
 <body>
@@ -43,14 +43,18 @@
                     </div>
                 </div>
                 <div class="row">
+                    <!-- CHANGE START: Freight now in USD -->
                     <div class="col-md-6 mb-3">
-                        <label for="freight" class="form-label">Freight Cost (BRL, optional)</label>
-                        <input type="number" class="form-control" id="freight" min="0" step="0.01">
+                        <label for="freightUsd" class="form-label">Freight Cost (USD, optional)</label>
+                        <input type="number" class="form-control" id="freightUsd" min="0" step="0.01">
                     </div>
+                    <!-- CHANGE END -->
+                    <!-- CHANGE START: Insurance now a percentage of FOB -->
                     <div class="col-md-6 mb-3">
-                        <label for="insurance" class="form-label">Insurance Cost (BRL, optional)</label>
-                        <input type="number" class="form-control" id="insurance" min="0" step="0.01">
+                        <label for="insuranceRate" class="form-label">Insurance Rate (%) <span style="font-size: 0.8em; color: gray;">(Typically 0.19%)</span></label>
+                        <input type="number" class="form-control" id="insuranceRate" min="0" step="0.01" placeholder="e.g., 0.19">
                     </div>
+                    <!-- CHANGE END -->
                 </div>
                 <div class="mb-3">
                     <label for="state" class="form-label">State of Importation</label>
